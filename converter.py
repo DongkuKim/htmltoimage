@@ -37,9 +37,7 @@ if not os.path.exists(input_dir):
     os.makedirs(input_dir)
 
 # Define the file path for the HTML file inside the 'input' directory
-html_file_path = os.path.join(input_dir, "test.html")
-
-html_file_path = "input/test.html"  # Make sure the path is correct
+html_file_path = os.path.join(input_dir, "temp.html")
 with open(html_file_path, "w") as html_file:
     html_file.write(html_content)
 
