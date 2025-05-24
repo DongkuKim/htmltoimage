@@ -1,49 +1,9 @@
-import time
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from webdriver_manager.chrome import ChromeDriverManager
-from PIL import Image
+from spire.doc import *
+from spire.doc.common import *
+import os
 
-# Create a function to render HTML and CSS to an image
-def capture_webpage_image(html_content, output_image="webpage_image.png"):
-    # Setup Chrome options for headless operation
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")  # Run headless Chrome (without UI)
-    chrome_options.add_argument("--disable-gpu")  # Disable GPU acceleration
-    chrome_options.add_argument("--window-size=1920x1080")  # Set window size for rendering
-
-    # Setup the WebDriver
-    driver = webdriver.Chrome(ChromeDriverManager().install(), options=chrome_options)
-    
-    # Create a temporary HTML page
-    temp_html_path = "temp_page.html"
-    
-    # Write the HTML (with embedded CSS) to a temporary file
-    with open(temp_html_path, "w") as file:
-        file.write(html_content)
-
-    # Load the HTML page in the browser
-    driver.get(f"file:///{temp_html_path}")
-
-    # Wait for the page to fully load
-    time.sleep(2)
-
-    # Capture a screenshot of the page
-    screenshot_path = "screenshot.png"
-    driver.save_screenshot(screenshot_path)
-
-    # Close the browser
-    driver.quit()
-
-    # Open the screenshot image using Pillow for any processing (if needed)
-    img = Image.open(screenshot_path)
-    
-    # Save the final image
-    img.save(output_image)
-    print(f"Screenshot saved as {output_image}")
-
-# Example usage with both HTML and CSS in the same string
-html_and_css = """
+# HTML content as a string
+html_content = """
 <html>
 <head>
     <title>Sample Webpage</title>
@@ -71,4 +31,49 @@ html_and_css = """
 </html>
 """
 
-capture_webpage_image(html_and_css)
+# Write the HTML content to a file
+input_dir = 'input'
+if not os.path.exists(input_dir):
+    os.makedirs(input_dir)
+
+# Define the file path for the HTML file inside the 'input' directory
+html_file_path = os.path.join(input_dir, "test.html")
+
+html_file_path = "input/test.html"  # Make sure the path is correct
+with open(html_file_path, "w") as html_file:
+    html_file.write(html_content)
+
+# Create a Document object
+document = Document()
+
+# Load the HTML file
+document.LoadFromFile(html_file_path, FileFormat.Html)
+
+# Get the first section
+section = document.Sections[0]
+
+# Set the page margins (in inches)
+section.PageSetup.Margins.All = 2  # You can adjust this value
+
+# Convert the document to a list of image streams
+imageStreams = document.SaveImageToStreams(ImageType.Bitmap)
+
+# Create the output directory if it doesn't exist
+
+output_dir = 'output'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+
+# Iterate through the image streams and save them as PNG files
+for index, stream in enumerate(imageStreams):
+    # Construct the file path for the PNG file
+    image_file_path = os.path.join(output_dir, f'image_{index}.png')
+    
+    # Save each image stream as a PNG file
+    with open(image_file_path, 'wb') as imageFile:
+        imageFile.write(stream.ToArray())
+
+# Dispose resources to free up memory
+document.Dispose()
+
+print(f"Images saved to '{output_dir}'")
